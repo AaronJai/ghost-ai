@@ -53,7 +53,17 @@ export function ProjectDialogs({
     return () => window.cancelAnimationFrame(id);
   }, [dialog.kind, dialog.project?.id]);
 
-  const slugDisplay = slugPreview || "your-project-slug";
+  const trimmedCreateName = createName.trim();
+  const slugEmpty =
+    trimmedCreateName.length > 0 && slugPreview.length === 0;
+  const slugMono =
+    trimmedCreateName.length === 0
+      ? "your-project-slug"
+      : slugEmpty
+        ? "—"
+        : slugPreview;
+  const canSubmitCreate =
+    trimmedCreateName.length > 0 && slugPreview.length > 0;
 
   return (
     <>
@@ -90,11 +100,18 @@ export function ProjectDialogs({
                 placeholder="e.g. Order service redesign"
                 autoComplete="off"
                 disabled={isLoading}
+                aria-invalid={slugEmpty}
               />
               <p className="text-xs text-muted-foreground">
                 Slug preview:{" "}
-                <span className="font-mono text-foreground">{slugDisplay}</span>
+                <span className="font-mono text-foreground">{slugMono}</span>
               </p>
+              {slugEmpty ? (
+                <p className="text-xs text-destructive" role="alert">
+                  Add at least one letter or number — symbols alone cannot form
+                  a URL slug.
+                </p>
+              ) : null}
             </div>
             <EditorDialogFooter className="mt-2 border-t">
               <Button
@@ -107,7 +124,7 @@ export function ProjectDialogs({
               </Button>
               <Button
                 type="submit"
-                disabled={isLoading || !createName.trim()}
+                disabled={isLoading || !canSubmitCreate}
               >
                 {isLoading ? "Creating…" : "Create"}
               </Button>

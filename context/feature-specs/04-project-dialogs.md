@@ -4,11 +4,11 @@ Build the `/editor` homescreen and add project dialogs/sidebar actions. No API c
 
 ## Editor Home
 
-Resuse the existing editor layout. DO not modify the navbar or sidebar behaviour.
+Reuse the existing editor layout. DO not modify the navbar or sidebar behaviour.
 
 In the center of the page, add:
 - heading: `Create a project or open an existing one`
-- description: `Start a new architecture workspace, or choose a project from the sidbear`
+- description: `Start a new architecture workspace, or choose a project from the sidebar`
 - `New Project` button with a `Plus` icon
 
 Keep the layout minimal. Do not wrap this content in cards.

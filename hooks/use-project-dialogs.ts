@@ -72,11 +72,12 @@ export function useProjectDialogs() {
   const submitCreate = useCallback(async () => {
     const name = createName.trim();
     if (!name) return;
+    const baseSlug = slugifyProjectName(name);
+    if (!baseSlug) return;
 
     setIsLoading(true);
     try {
       await new Promise((r) => setTimeout(r, 450));
-      const baseSlug = slugifyProjectName(name) || "project";
       const all = [...myProjects, ...sharedProjects];
       const slug = uniqueSlug(baseSlug, all);
       const next: MockProject = {
@@ -101,17 +102,20 @@ export function useProjectDialogs() {
     try {
       await new Promise((r) => setTimeout(r, 350));
       const id = dialog.project.id;
-      setMyProjects((prev) =>
-        prev.map((p) => (p.id === id ? { ...p, name } : p))
-      );
-      setSharedProjects((prev) =>
-        prev.map((p) => (p.id === id ? { ...p, name } : p))
-      );
+      if (myProjects.some((p) => p.id === id)) {
+        setMyProjects((prev) =>
+          prev.map((p) => (p.id === id ? { ...p, name } : p))
+        );
+      } else if (sharedProjects.some((p) => p.id === id)) {
+        setSharedProjects((prev) =>
+          prev.map((p) => (p.id === id ? { ...p, name } : p))
+        );
+      }
       closeDialog();
     } finally {
       setIsLoading(false);
     }
-  }, [closeDialog, dialog, renameName]);
+  }, [closeDialog, dialog, myProjects, renameName, sharedProjects]);
 
   const submitDelete = useCallback(async () => {
     if (dialog.kind !== "delete" || !dialog.project) return;
@@ -120,13 +124,16 @@ export function useProjectDialogs() {
     try {
       await new Promise((r) => setTimeout(r, 350));
       const id = dialog.project.id;
-      setMyProjects((prev) => prev.filter((p) => p.id !== id));
-      setSharedProjects((prev) => prev.filter((p) => p.id !== id));
+      if (myProjects.some((p) => p.id === id)) {
+        setMyProjects((prev) => prev.filter((p) => p.id !== id));
+      } else if (sharedProjects.some((p) => p.id === id)) {
+        setSharedProjects((prev) => prev.filter((p) => p.id !== id));
+      }
       closeDialog();
     } finally {
       setIsLoading(false);
     }
-  }, [closeDialog, dialog]);
+  }, [closeDialog, dialog, myProjects, sharedProjects]);
 
   return {
     myProjects,
