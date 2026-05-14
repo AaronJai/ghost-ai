@@ -1,10 +1,10 @@
-CLerk is already installed and connected. WIre it into the Next.js app: provider, auth pages, redirects, route protection, and user menu.
+Clerk is already installed and connected. Wire it into the Next.js app: `ClerkProvider`, auth pages, redirects, route protection, and user menu.
 
 ## Design
 
-Use CLerk's `dark` theme from `@clerk/ui/themes` as the base.
+Use Clerk’s official `shadcn` theme from `@clerk/ui/themes` as the base (see global styles for the matching `shadcn.css` import).
 
-Override Clerk appearance variables using the app's existing CSS variables. Do not hardcode colours.
+Let Clerk pick up your design tokens through the theme and global CSS variables; do not hardcode colours.
 
 Sign-in and sign-up pages:
 
@@ -21,13 +21,13 @@ Keep the layout minimal and professional
 
 ## Implementation
 
-Wrap the root layout with `ClerkProvider` using Clerk's `dark` theme.
+Wrap the root layout with `ClerkProvider` using Clerk’s `shadcn` theme from `@clerk/ui/themes`.
 
 Create sign-in and sign-up pages using Clerk components.
 
-use `proxy.ts` at the project root, not `middleware.ts`.
+Use `proxy.ts` at the project root, not `middleware.ts`.
 
-Define public routes using the exsiting sign-in and sign-up env vars. Protect everything else by default.
+Define public routes using the existing sign-in and sign-up env vars. Protect everything else by default.
 
 Update `/`:
 - authenticated users redirect to `/editor`
@@ -35,17 +35,17 @@ Update `/`:
 
 Add Clerk's built-in `UserButton` to the editor navbar right section for profile settings and logout.
 
-Keep Clerk's default user menu and profile flows intact. DO not rebuild or heavily customise Clerk internals.
+Keep Clerk's default user menu and profile flows intact. Do not rebuild or heavily customise Clerk internals.
 
 Use existing Clerk env vars. Do not rename or invent new ones.
 
 ## Dependencies
 
-insall: `@clerk/ui`
+Install: `@clerk/ui`
 
 ## Check when done
-- `proxy.ts` exists at the root
-- all routes are protected except public auth paths
-- auth pages use CSS variables with no hardcoded colours
+- `proxy.ts` exists at the project root
+- All routes are protected except public auth paths
+- Auth pages use CSS variables with no hardcoded colours
 - `ClerkProvider` wraps the root layout
-- `npm run build` passes 
+- `npm run build` passes
