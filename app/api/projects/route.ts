@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 
+import { Prisma } from "@/app/generated/prisma/client";
 import { requireUserId } from "@/lib/api-auth";
 import { prismaDb } from "@/lib/prisma";
 
@@ -92,31 +93,44 @@ export async function POST(request: Request) {
     }
   }
 
-  const project = await prismaDb.$transaction(async (tx) => {
-    const created = await tx.project.create({
-      data: {
-        ...(explicitId ? { id: explicitId } : {}),
-        ownerId: userId,
-        name,
-        description,
-        canvasJsonPath: "__pending__",
-      },
+  try {
+    const project = await prismaDb.$transaction(async (tx) => {
+      const created = await tx.project.create({
+        data: {
+          ...(explicitId ? { id: explicitId } : {}),
+          ownerId: userId,
+          name,
+          description,
+          canvasJsonPath: "__pending__",
+        },
+      });
+      return tx.project.update({
+        where: { id: created.id },
+        data: { canvasJsonPath: `canvas/${created.id}.json` },
+        select: {
+          id: true,
+          ownerId: true,
+          name: true,
+          description: true,
+          status: true,
+          canvasJsonPath: true,
+          createdAt: true,
+          updatedAt: true,
+        },
+      });
     });
-    return tx.project.update({
-      where: { id: created.id },
-      data: { canvasJsonPath: `canvas/${created.id}.json` },
-      select: {
-        id: true,
-        ownerId: true,
-        name: true,
-        description: true,
-        status: true,
-        canvasJsonPath: true,
-        createdAt: true,
-        updatedAt: true,
-      },
-    });
-  });
 
-  return NextResponse.json({ project }, { status: 201 });
+    return NextResponse.json({ project }, { status: 201 });
+  } catch (error) {
+    if (
+      error instanceof Prisma.PrismaClientKnownRequestError &&
+      error.code === "P2002"
+    ) {
+      return NextResponse.json({ error: "id already in use" }, { status: 409 });
+    }
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 },
+    );
+  }
 }

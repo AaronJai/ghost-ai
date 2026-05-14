@@ -29,7 +29,7 @@ The project ID and Liveblocks room ID should stay aligned.
 - call `PATCH /api/projects/[id]`
 - refresh on success
 
-** Delete**
+**Delete**
 
 - store target project
 - call `DELETE /api/projects/[id]`
@@ -40,7 +40,7 @@ The project ID and Liveblocks room ID should stay aligned.
 
 Connect the hook to the sidebar and dialogs
 
-- create dialog shosw room ID preview
+- create dialog shows room ID preview
 - rename dialog pre-fills current name
 - delete dialog shows project name
 

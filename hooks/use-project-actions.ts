@@ -53,9 +53,22 @@ export function useProjectActions({
     kind: "none",
     project: null,
   });
-  const [createName, setCreateName] = useState("");
-  const [renameName, setRenameName] = useState("");
+  const [createName, setCreateNameState] = useState("");
+  const [renameName, setRenameNameState] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [createError, setCreateError] = useState<string | null>(null);
+  const [renameError, setRenameError] = useState<string | null>(null);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+
+  const setCreateName = useCallback((value: string) => {
+    setCreateError(null);
+    setCreateNameState(value);
+  }, []);
+
+  const setRenameName = useCallback((value: string) => {
+    setRenameError(null);
+    setRenameNameState(value);
+  }, []);
 
   const slugPreview = useMemo(() => {
     const name = createName.trim();
@@ -68,22 +81,30 @@ export function useProjectActions({
 
   const closeDialog = useCallback(() => {
     setDialog({ kind: "none", project: null });
-    setCreateName("");
-    setRenameName("");
+    setCreateNameState("");
+    setCreateError(null);
+    setRenameNameState("");
+    setRenameError(null);
+    setDeleteError(null);
     setIsLoading(false);
   }, []);
 
   const openCreate = useCallback(() => {
-    setCreateName("");
+    setCreateError(null);
+    setCreateNameState("");
     setDialog({ kind: "create", project: null });
   }, []);
 
-  const openRename = useCallback((project: EditorSidebarProject) => {
-    setRenameName(project.name);
-    setDialog({ kind: "rename", project });
-  }, []);
+  const openRename = useCallback(
+    (project: EditorSidebarProject) => {
+      setRenameName(project.name);
+      setDialog({ kind: "rename", project });
+    },
+    [setRenameName],
+  );
 
   const openDelete = useCallback((project: EditorSidebarProject) => {
+    setDeleteError(null);
     setDialog({ kind: "delete", project });
   }, []);
 
@@ -92,6 +113,7 @@ export function useProjectActions({
     if (!name) return;
     const baseSlug = slugifyProjectName(name) || "project";
 
+    setCreateError(null);
     setIsLoading(true);
     try {
       const ids = allProjectIds(myProjects, sharedProjects);
@@ -112,7 +134,10 @@ export function useProjectActions({
           const err = (await res.json().catch(() => null)) as {
             error?: string;
           } | null;
-          throw new Error(err?.error ?? `Create failed (${res.status})`);
+          setCreateError(
+            err?.error ?? `Create failed (${res.status})`,
+          );
+          return;
         }
         const data = (await res.json()) as { project: { id: string } };
         closeDialog();
@@ -120,7 +145,11 @@ export function useProjectActions({
         router.refresh();
         return;
       }
-      throw new Error("Could not allocate a unique room id");
+      setCreateError("Could not allocate a unique room id");
+    } catch (err) {
+      setCreateError(
+        err instanceof Error ? err.message : "Failed to create project",
+      );
     } finally {
       setIsLoading(false);
     }
@@ -131,6 +160,7 @@ export function useProjectActions({
     const name = renameName.trim();
     if (!name) return;
 
+    setRenameError(null);
     setIsLoading(true);
     try {
       const res = await fetch(`/api/projects/${dialog.project.id}`, {
@@ -142,10 +172,15 @@ export function useProjectActions({
         const err = (await res.json().catch(() => null)) as {
           error?: string;
         } | null;
-        throw new Error(err?.error ?? `Rename failed (${res.status})`);
+        setRenameError(err?.error ?? `Rename failed (${res.status})`);
+        return;
       }
       closeDialog();
       router.refresh();
+    } catch (err) {
+      setRenameError(
+        err instanceof Error ? err.message : String(err),
+      );
     } finally {
       setIsLoading(false);
     }
@@ -154,6 +189,7 @@ export function useProjectActions({
   const submitDelete = useCallback(async () => {
     if (dialog.kind !== "delete" || !dialog.project) return;
 
+    setDeleteError(null);
     setIsLoading(true);
     try {
       const id = dialog.project.id;
@@ -162,7 +198,8 @@ export function useProjectActions({
         const err = (await res.json().catch(() => null)) as {
           error?: string;
         } | null;
-        throw new Error(err?.error ?? `Delete failed (${res.status})`);
+        setDeleteError(err?.error ?? `Delete failed (${res.status})`);
+        return;
       }
       closeDialog();
       if (activeProjectId === id) {
@@ -171,6 +208,10 @@ export function useProjectActions({
       } else {
         router.refresh();
       }
+    } catch (err) {
+      setDeleteError(
+        err instanceof Error ? err.message : String(err),
+      );
     } finally {
       setIsLoading(false);
     }
@@ -180,9 +221,12 @@ export function useProjectActions({
     dialog,
     createName,
     setCreateName,
+    createError,
     slugPreview,
     renameName,
     setRenameName,
+    renameError,
+    deleteError,
     isLoading,
     openCreate,
     openRename,

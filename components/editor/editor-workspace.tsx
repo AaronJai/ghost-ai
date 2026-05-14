@@ -69,8 +69,11 @@ export function EditorWorkspace({
         createName={dialogs.createName}
         onCreateNameChange={dialogs.setCreateName}
         slugPreview={dialogs.slugPreview}
+        createError={dialogs.createError}
         renameName={dialogs.renameName}
         onRenameNameChange={dialogs.setRenameName}
+        renameError={dialogs.renameError}
+        deleteError={dialogs.deleteError}
         isLoading={dialogs.isLoading}
         onOpenChange={handleDialogOpenChange}
         onSubmitCreate={dialogs.submitCreate}

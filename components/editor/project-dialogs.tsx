@@ -20,8 +20,11 @@ export interface ProjectDialogsProps {
   createName: string;
   onCreateNameChange: (value: string) => void;
   slugPreview: string;
+  createError: string | null;
   renameName: string;
   onRenameNameChange: (value: string) => void;
+  renameError: string | null;
+  deleteError: string | null;
   isLoading: boolean;
   onOpenChange: (open: boolean) => void;
   onSubmitCreate: () => void;
@@ -34,8 +37,11 @@ export function ProjectDialogs({
   createName,
   onCreateNameChange,
   slugPreview,
+  createError,
   renameName,
   onRenameNameChange,
+  renameError,
+  deleteError,
   isLoading,
   onOpenChange,
   onSubmitCreate,
@@ -58,7 +64,7 @@ export function ProjectDialogs({
   const slugBase = slugifyProjectName(trimmedCreateName);
   const slugEmpty = trimmedCreateName.length > 0 && slugBase.length === 0;
   const slugMono =
-    trimmedCreateName.length === 0 ? "" : slugPreview;
+    trimmedCreateName.length === 0 ? "your-room-id" : slugPreview;
   const canSubmitCreate =
     trimmedCreateName.length > 0 && slugPreview.length > 0;
 
@@ -101,13 +107,18 @@ export function ProjectDialogs({
                 aria-invalid={slugEmpty}
               />
               <p className="text-xs text-muted-foreground">
-                {" "}
+                Room ID preview:{" "}
                 <span className="font-mono text-foreground">{slugMono}</span>
               </p>
               {slugEmpty ? (
                 <p className="text-xs text-destructive" role="alert">
                   Add at least one letter or number — symbols alone cannot form
                   a URL slug.
+                </p>
+              ) : null}
+              {createError ? (
+                <p className="text-xs text-destructive" role="alert">
+                  {createError}
                 </p>
               ) : null}
             </div>
@@ -167,6 +178,11 @@ export function ProjectDialogs({
                 disabled={isLoading}
                 autoFocus
               />
+              {renameError ? (
+                <p className="text-xs text-destructive" role="alert">
+                  {renameError}
+                </p>
+              ) : null}
             </div>
             <EditorDialogFooter className="mt-2 border-t">
               <Button
@@ -203,6 +219,11 @@ export function ProjectDialogs({
               from your list. This action cannot be undone.
             </DialogDescription>
           </DialogHeader>
+          {deleteError ? (
+            <p className="text-xs text-destructive" role="alert">
+              {deleteError}
+            </p>
+          ) : null}
           <EditorDialogFooter className="mt-2 border-t">
             <Button
               type="button"
