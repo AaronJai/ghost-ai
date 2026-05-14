@@ -13,18 +13,28 @@ export interface ProjectDialogState {
   project: EditorSidebarProject | null;
 }
 
-function shortSuffix(): string {
-  return Math.random().toString(36).slice(2, 8);
+function createRoomSuffix4(): string {
+  const alphabet = "0123456789abcdefghijklmnopqrstuvwxyz";
+  let out = "";
+  for (let i = 0; i < 4; i += 1) {
+    out += alphabet[Math.floor(Math.random() * alphabet.length)] ?? "a";
+  }
+  return out;
 }
 
-function uniqueRoomId(base: string, ids: Set<string>): string {
+/** `suffix` is fixed for one create dialog; only `baseSlug` and collision `-n` tail change while typing. */
+function roomIdWithFixedSuffix(
+  baseSlug: string,
+  suffix: string,
+  ids: Set<string>,
+): string {
   const root =
-    (base || "project").slice(0, 80).replace(/-+$/g, "") || "project";
-  let candidate = root;
-  let n = 0;
+    (baseSlug || "project").slice(0, 100).replace(/-+$/g, "") || "project";
+  let candidate = `${root}-${suffix}`;
+  let n = 1;
   while (ids.has(candidate)) {
     n += 1;
-    candidate = `${root}-${shortSuffix()}${n > 1 ? `-${n}` : ""}`;
+    candidate = `${root}-${suffix}-${n}`;
   }
   return candidate;
 }
@@ -59,6 +69,9 @@ export function useProjectActions({
   const [createError, setCreateError] = useState<string | null>(null);
   const [renameError, setRenameError] = useState<string | null>(null);
   const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [createRoomSuffix, setCreateRoomSuffix] = useState<string | null>(
+    null,
+  );
 
   const setCreateName = useCallback((value: string) => {
     setCreateError(null);
@@ -71,12 +84,22 @@ export function useProjectActions({
   }, []);
 
   const slugPreview = useMemo(() => {
+    if (dialog.kind !== "create" || !createRoomSuffix) return "";
     const name = createName.trim();
     if (!name) return "";
     const baseSlug = slugifyProjectName(name) || "project";
-    if (!baseSlug) return "";
-    return uniqueRoomId(baseSlug, allProjectIds(myProjects, sharedProjects));
-  }, [createName, myProjects, sharedProjects]);
+    return roomIdWithFixedSuffix(
+      baseSlug,
+      createRoomSuffix,
+      allProjectIds(myProjects, sharedProjects),
+    );
+  }, [
+    createName,
+    createRoomSuffix,
+    dialog.kind,
+    myProjects,
+    sharedProjects,
+  ]);
 
   const closeDialog = useCallback(() => {
     setDialog({ kind: "none", project: null });
@@ -85,12 +108,14 @@ export function useProjectActions({
     setRenameNameState("");
     setRenameError(null);
     setDeleteError(null);
+    setCreateRoomSuffix(null);
     setIsLoading(false);
   }, []);
 
   const openCreate = useCallback(() => {
     setCreateError(null);
     setCreateNameState("");
+    setCreateRoomSuffix(createRoomSuffix4());
     setDialog({ kind: "create", project: null });
   }, []);
 
@@ -116,11 +141,16 @@ export function useProjectActions({
       return;
     }
 
+    if (!createRoomSuffix) {
+      setCreateError("Close and reopen the create dialog.");
+      return;
+    }
+
     setCreateError(null);
     setIsLoading(true);
     try {
       const ids = allProjectIds(myProjects, sharedProjects);
-      let roomId = uniqueRoomId(baseSlug, ids);
+      let roomId = roomIdWithFixedSuffix(baseSlug, createRoomSuffix, ids);
       const maxAttempts = 8;
       for (let attempt = 0; attempt < maxAttempts; attempt += 1) {
         const res = await fetch("/api/projects", {
@@ -130,7 +160,7 @@ export function useProjectActions({
         });
         if (res.status === 409) {
           ids.add(roomId);
-          roomId = uniqueRoomId(baseSlug, ids);
+          roomId = roomIdWithFixedSuffix(baseSlug, createRoomSuffix, ids);
           continue;
         }
         if (!res.ok) {
@@ -156,7 +186,14 @@ export function useProjectActions({
     } finally {
       setIsLoading(false);
     }
-  }, [closeDialog, createName, myProjects, router, sharedProjects]);
+  }, [
+    closeDialog,
+    createName,
+    createRoomSuffix,
+    myProjects,
+    router,
+    sharedProjects,
+  ]);
 
   const submitRename = useCallback(async () => {
     if (dialog.kind !== "rename" || !dialog.project) return;
