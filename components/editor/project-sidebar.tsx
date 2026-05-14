@@ -40,6 +40,7 @@ export function ProjectSidebar({
     <>
       <button
         type="button"
+        aria-label="Close project sidebar"
         aria-hidden={!isOpen}
         tabIndex={isOpen ? 0 : -1}
         className={cn(
@@ -53,6 +54,7 @@ export function ProjectSidebar({
       <aside
         id="project-sidebar"
         aria-hidden={!isOpen}
+        inert={!isOpen}
         className={cn(
           "absolute inset-y-0 left-0 z-40 flex w-[min(100%,20rem)] flex-col border-r border-border bg-card shadow-lg transition-transform duration-200 ease-out",
           isOpen ? "translate-x-0" : "-translate-x-full pointer-events-none",
