@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useLayoutEffect, useMemo, useRef, useState } from "react";
 
 import type { MockProject } from "@/lib/mock-projects";
 import {
@@ -34,6 +34,11 @@ export function useProjectDialogs() {
   const [sharedProjects, setSharedProjects] = useState<MockProject[]>(
     () => INITIAL_MOCK_SHARED_PROJECTS
   );
+  const sharedProjectsRef = useRef(sharedProjects);
+
+  useLayoutEffect(() => {
+    sharedProjectsRef.current = sharedProjects;
+  }, [sharedProjects]);
 
   const [dialog, setDialog] = useState<ProjectDialogState>({
     kind: "none",
@@ -78,20 +83,22 @@ export function useProjectDialogs() {
     setIsLoading(true);
     try {
       await new Promise((r) => setTimeout(r, 450));
-      const all = [...myProjects, ...sharedProjects];
-      const slug = uniqueSlug(baseSlug, all);
-      const next: MockProject = {
-        id: `p-mock-${crypto.randomUUID()}`,
-        name,
-        slug,
-        membership: "owner",
-      };
-      setMyProjects((prev) => [next, ...prev]);
+      setMyProjects((prev) => {
+        const allCurrent = [...prev, ...sharedProjectsRef.current];
+        const slug = uniqueSlug(baseSlug, allCurrent);
+        const next: MockProject = {
+          id: `p-mock-${crypto.randomUUID()}`,
+          name,
+          slug,
+          membership: "owner",
+        };
+        return [next, ...prev];
+      });
       closeDialog();
     } finally {
       setIsLoading(false);
     }
-  }, [closeDialog, createName, myProjects, sharedProjects]);
+  }, [closeDialog, createName]);
 
   const submitRename = useCallback(async () => {
     if (dialog.kind !== "rename" || !dialog.project) return;

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 
 import { EditorHome } from "@/components/editor/editor-home";
 import { EditorNavbar } from "@/components/editor/editor-navbar";
@@ -12,16 +12,16 @@ export function EditorWorkspace() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const dialogs = useProjectDialogs();
 
-  function handleDialogOpenChange(open: boolean) {
+  const handleDialogOpenChange = useCallback((open: boolean) => {
     if (!open) {
       dialogs.closeDialog();
     }
-  }
+  }, [dialogs]);
 
-  function handleNewProjectFromSidebar() {
+  const handleNewProjectFromSidebar = useCallback(() => {
     setSidebarOpen(false);
     dialogs.openCreate();
-  }
+  }, [dialogs]);
 
   return (
     <div className="flex h-svh flex-col bg-background">

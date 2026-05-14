@@ -99,6 +99,7 @@ export function ProjectDialogs({
                 onChange={(e) => onCreateNameChange(e.target.value)}
                 placeholder="e.g. Order service redesign"
                 autoComplete="off"
+                autoFocus
                 disabled={isLoading}
                 aria-invalid={slugEmpty}
               />
@@ -167,6 +168,7 @@ export function ProjectDialogs({
                 value={renameName}
                 onChange={(e) => onRenameNameChange(e.target.value)}
                 disabled={isLoading}
+                autoFocus
               />
             </div>
             <EditorDialogFooter className="mt-2 border-t">
