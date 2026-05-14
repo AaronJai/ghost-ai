@@ -8,13 +8,14 @@ Update this file whenever the current phase, active feature, or implementation s
 
 ## Current Goal
 
-- Continue with the next feature unit from `context/feature-specs/` or product backlog.
+- Wire Prisma / project persistence, Liveblocks canvas, or the next feature unit from `context/feature-specs/`.
 
 ## Completed
 
 - `context/feature-specs/01-design-system.md` — shadcn/ui initialized (Tailwind v4, `components.json`, `tw-animate-css`, `shadcn/tailwind.css`); primitives added: `Button`, `Card`, `Dialog`, `Input`, `Tabs`, `Textarea`, `ScrollArea`; `lucide-react` installed; `lib/utils.ts` with `cn()`; dark-only semantic tokens in `app/globals.css` aligned with `context/ui-context.md`; `<html class="dark">` for `dark:` variants. Generated `components/ui/*` left unmodified after install.
 - `context/feature-specs/02-editor.md` — `components/editor/editor-navbar.tsx` (fixed-height bar, sidebar toggle with `PanelLeftOpen` / `PanelLeftClose`, empty center and right); `components/editor/project-sidebar.tsx` (overlay sidebar, slide-in, `Projects` header + close, `Tabs` for My Projects / Shared with empty states, full-width `New Project`); `components/editor/editor-dialog-pattern.tsx` (`EditorDialogContent`, `EditorDialogFooter`, re-exports for title/description/actions); `components/editor/editor-workspace.tsx` (shell composed into the editor route; see `03-auth` for `/editor`).
 - `context/feature-specs/03-auth.md` — `@clerk/ui` added; root `ClerkProvider` with `dark` theme from `@clerk/ui/themes` and appearance variables mapped to app CSS custom properties (`lib/clerk-appearance.ts`); `proxy.ts` at project root with `clerkMiddleware`, public routes derived from `NEXT_PUBLIC_CLERK_SIGN_IN_URL` / `NEXT_PUBLIC_CLERK_SIGN_UP_URL` (path fallbacks `/sign-in`, `/sign-up`), default protection elsewhere; `/` redirects signed-in users to `/editor` and signed-out to sign-in; `app/sign-in/[[...sign-in]]` and `app/sign-up/[[...sign-up]]` with minimal two-panel `AuthGateLayout` (marketing panel `lg+` only); editor shell at `app/editor/page.tsx`; `UserButton` in navbar right using shared appearance.
+- `context/feature-specs/04-project-dialogs.md` — `hooks/use-project-dialogs.ts` (dialog / form / mock loading state; mock my + shared lists); `lib/mock-projects.ts`, `lib/project-slug.ts`; `components/editor/editor-home.tsx` (center copy + `New Project` with `Plus`); `components/editor/project-dialogs.tsx` (Create with live slug preview, Rename with prefilled name / Enter submit / autofocus, Delete destructive confirm); `ProjectSidebar` wired to dialogs, per-row actions (rename/delete) only for `membership === "owner"`, `max-md` backdrop scrim + outside tap to close, desktop overlay non-blocking; `editor-workspace.tsx` composes hook, home, dialogs, and sidebar.
 
 ## In Progress
 
