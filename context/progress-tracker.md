@@ -8,7 +8,7 @@ Update this file whenever the current phase, active feature, or implementation s
 
 ## Current Goal
 
-- Wire project UI to Prisma persistence, Liveblocks canvas, or the next feature unit from `context/feature-specs/`.
+- Wire project UI to Prisma-backed project APIs, Liveblocks canvas, or the next feature unit from `context/feature-specs/`.
 
 ## Completed
 
@@ -17,6 +17,7 @@ Update this file whenever the current phase, active feature, or implementation s
 - `context/feature-specs/03-auth.md` — `@clerk/ui` added; root `ClerkProvider` with `dark` theme from `@clerk/ui/themes` and appearance variables mapped to app CSS custom properties (`lib/clerk-appearance.ts`); `proxy.ts` at project root with `clerkMiddleware`, public routes derived from `NEXT_PUBLIC_CLERK_SIGN_IN_URL` / `NEXT_PUBLIC_CLERK_SIGN_UP_URL` (path fallbacks `/sign-in`, `/sign-up`), default protection elsewhere; `/` redirects signed-in users to `/editor` and signed-out to sign-in; `app/sign-in/[[...sign-in]]` and `app/sign-up/[[...sign-up]]` with minimal two-panel `AuthGateLayout` (marketing panel `lg+` only); editor shell at `app/editor/page.tsx`; `UserButton` in navbar right using shared appearance.
 - `context/feature-specs/04-project-dialogs.md` — `hooks/use-project-dialogs.ts` (dialog / form / mock loading state; mock my + shared lists); `lib/mock-projects.ts`, `lib/project-slug.ts`; `components/editor/editor-home.tsx` (center copy + `New Project` with `Plus`); `components/editor/project-dialogs.tsx` (Create with live slug preview, Rename with prefilled name / Enter submit / autofocus, Delete destructive confirm); `ProjectSidebar` wired to dialogs, per-row actions (rename/delete) only for `membership === "owner"`, `max-md` backdrop scrim + outside tap to close, desktop overlay non-blocking; `editor-workspace.tsx` composes hook, home, dialogs, and sidebar.
 - `context/feature-specs/05-prisma.md` — `prisma/models/project.prisma` (`Project`, `ProjectCollaborator`, `ProjectStatus`, indexes and unique as specified); `lib/prisma.ts` (singleton on `globalThis` in non-production; `prisma+postgres://` → Accelerate + `@prisma/extension-accelerate`, else `@prisma/adapter-pg`); first migration `20260514070455_init_project_models`; client output `app/generated/prisma` (gitignored).
+- `context/feature-specs/06-project-apis.md` — `GET/POST /api/projects`, `PATCH/DELETE /api/projects/[projectId]` with Clerk `ownerId`, default name `Untitled Project`, owner-only rename/delete (`403`), unauthenticated `401` (`lib/api-auth.ts`); `canvas/{id}.json` set in a transaction after create; `proxy.ts` skips `auth.protect()` for `/api` so handlers return JSON errors instead of redirects.
 
 ## In Progress
 
@@ -24,7 +25,7 @@ Update this file whenever the current phase, active feature, or implementation s
 
 ## Next Up
 
-- Replace mock project lists with Prisma-backed APIs, Liveblocks canvas, or whichever unit is next in `context/feature-specs/`.
+- Replace mock project lists with the new project API routes, then Liveblocks canvas, or whichever unit is next in `context/feature-specs/`.
 
 ## Open Questions
 
@@ -33,6 +34,7 @@ Update this file whenever the current phase, active feature, or implementation s
 ## Architecture Decisions
 
 - Prisma Client wiring (`lib/prisma.ts`): if `DATABASE_URL` starts with `prisma+postgres://`, use Prisma Accelerate (`accelerateUrl` + `@prisma/extension-accelerate`); otherwise use direct PostgreSQL via `@prisma/adapter-pg`. Singleton is cached on `globalThis` outside production for Next.js dev hot reload.
+- `prismaDb` (`lib/prisma.ts`): cast of the singleton to `InstanceType<typeof PrismaClient>` for route modules where Turbopack/TypeScript cannot merge Accelerate-extended `findUnique` / transaction signatures with the base client.
 
 ## Session Notes
 

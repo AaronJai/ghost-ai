@@ -19,6 +19,9 @@ const isPublicRoute = createRouteMatcher([
   `${signUpPath}(.*)`,
 ]);
 
+/** API route handlers enforce JSON 401/403; skip redirect from `auth.protect()`. */
+const isApiRoute = createRouteMatcher(["/api(.*)"]);
+
 const clerkAuth = clerkMiddleware(async (auth, req) => {
   const { userId } = await auth();
 
@@ -30,6 +33,10 @@ const clerkAuth = clerkMiddleware(async (auth, req) => {
   }
 
   if (isPublicRoute(req)) {
+    return;
+  }
+
+  if (isApiRoute(req)) {
     return;
   }
 

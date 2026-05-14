@@ -14,7 +14,7 @@
 
 ## System Boundaries
 
-- `app/api` — Authenticated request handlers: input validation, ownership checks, task triggering, and persistence.
+- `app/api` — Authenticated request handlers: input validation, ownership checks, task triggering, and persistence. Handlers use Clerk `auth()` and return JSON `401` / `403` as appropriate; middleware skips `auth.protect()` for `/api` so unauthenticated API calls are not redirected to the sign-in page.
 - `trigger` — Long-running background jobs: AI design generation and spec generation.
 - `lib` — Shared infrastructure: Prisma client, access control helpers, and utilities.
 - `components` — UI composition: canvas surfaces, sidebars, dialogs, and interactive elements.
