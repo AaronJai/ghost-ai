@@ -73,10 +73,9 @@ export function useProjectActions({
   const slugPreview = useMemo(() => {
     const name = createName.trim();
     if (!name) return "";
-    return uniqueRoomId(
-      slugifyProjectName(name) || "project",
-      allProjectIds(myProjects, sharedProjects),
-    );
+    const baseSlug = slugifyProjectName(name) || "project";
+    if (!baseSlug) return "";
+    return uniqueRoomId(baseSlug, allProjectIds(myProjects, sharedProjects));
   }, [createName, myProjects, sharedProjects]);
 
   const closeDialog = useCallback(() => {
@@ -111,7 +110,11 @@ export function useProjectActions({
   const submitCreate = useCallback(async () => {
     const name = createName.trim();
     if (!name) return;
-    const baseSlug = slugifyProjectName(name) || "project";
+    const baseSlug = slugifyProjectName(name);
+    if (!baseSlug) {
+      setCreateError("Could not create a valid room id");
+      return;
+    }
 
     setCreateError(null);
     setIsLoading(true);
