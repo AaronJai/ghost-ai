@@ -1,14 +1,21 @@
 "use client";
 
-import { FolderOpen, Plus, Share2, X } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { FolderOpen, MoreHorizontal, Plus, Share2, X } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import type { MockProject } from "@/lib/mock-projects";
 import { cn } from "@/lib/utils";
 
 export interface ProjectSidebarProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
+  myProjects: MockProject[];
+  sharedProjects: MockProject[];
+  onNewProject: () => void;
+  onRenameProject: (project: MockProject) => void;
+  onDeleteProject: (project: MockProject) => void;
   className?: string;
 }
 
@@ -31,9 +38,133 @@ function EmptyTabState({
   );
 }
 
+function ProjectRow({
+  project,
+  showActions,
+  onRename,
+  onDelete,
+}: {
+  project: MockProject;
+  showActions: boolean;
+  onRename: () => void;
+  onDelete: () => void;
+}) {
+  const [menuOpen, setMenuOpen] = useState(false);
+  const rowRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!menuOpen) return;
+    function handlePointerDown(event: PointerEvent) {
+      const node = rowRef.current;
+      if (node && !node.contains(event.target as Node)) {
+        setMenuOpen(false);
+      }
+    }
+    document.addEventListener("pointerdown", handlePointerDown);
+    return () => document.removeEventListener("pointerdown", handlePointerDown);
+  }, [menuOpen]);
+
+  return (
+    <div
+      ref={rowRef}
+      className="flex items-stretch gap-1 border-b border-border py-2 pr-1 pl-3"
+    >
+      <div className="min-w-0 flex-1 py-0.5">
+        <p className="truncate text-sm font-medium text-foreground">
+          {project.name}
+        </p>
+        <p className="truncate font-mono text-xs text-muted-foreground">
+          {project.slug}
+        </p>
+      </div>
+      {showActions ? (
+        <div className="relative flex shrink-0 items-start">
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon-sm"
+            aria-expanded={menuOpen}
+            aria-haspopup="menu"
+            aria-label={`Actions for ${project.name}`}
+            onClick={() => setMenuOpen((open) => !open)}
+          >
+            <MoreHorizontal className="h-5 w-5" aria-hidden />
+          </Button>
+          {menuOpen ? (
+            <div
+              role="menu"
+              className="absolute top-full right-0 z-50 mt-1 min-w-[10rem] rounded-xl border border-border bg-popover py-1 shadow-lg ring-1 ring-border/60"
+            >
+              <button
+                type="button"
+                role="menuitem"
+                className="flex w-full items-center px-3 py-2 text-left text-sm text-foreground hover:bg-muted"
+                onClick={() => {
+                  setMenuOpen(false);
+                  onRename();
+                }}
+              >
+                Rename
+              </button>
+              <button
+                type="button"
+                role="menuitem"
+                className="flex w-full items-center px-3 py-2 text-left text-sm text-destructive hover:bg-muted"
+                onClick={() => {
+                  setMenuOpen(false);
+                  onDelete();
+                }}
+              >
+                Delete
+              </button>
+            </div>
+          ) : null}
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+function ProjectList({
+  projects,
+  emptyMessage,
+  emptyIcon,
+  onRenameProject,
+  onDeleteProject,
+}: {
+  projects: MockProject[];
+  emptyMessage: string;
+  emptyIcon: typeof FolderOpen;
+  onRenameProject: (project: MockProject) => void;
+  onDeleteProject: (project: MockProject) => void;
+}) {
+  if (projects.length === 0) {
+    return <EmptyTabState icon={emptyIcon} message={emptyMessage} />;
+  }
+
+  return (
+    <div className="flex min-h-0 flex-1 flex-col overflow-y-auto">
+      {projects.map((project) => (
+        <ProjectRow
+          key={project.id}
+          project={project}
+          showActions={project.membership === "owner"}
+          onRename={() => onRenameProject(project)}
+          onDelete={() => onDeleteProject(project)}
+        />
+      ))}
+    </div>
+  );
+}
+
 export function ProjectSidebar({
   isOpen,
   onOpenChange,
+  myProjects,
+  sharedProjects,
+  onNewProject,
+  onRenameProject,
+  onDeleteProject,
   className,
 }: ProjectSidebarProps) {
   return (
@@ -42,11 +173,11 @@ export function ProjectSidebar({
         type="button"
         aria-label="Close project sidebar"
         aria-hidden={!isOpen}
-        tabIndex={isOpen ? 0 : -1}
+        tabIndex={-1}
         className={cn(
-          "absolute inset-0 z-30 bg-black/50 transition-opacity duration-200 supports-backdrop-filter:backdrop-blur-xs",
+          "absolute inset-0 z-30 transition-opacity duration-200 supports-backdrop-filter:backdrop-blur-xs",
           isOpen
-            ? "pointer-events-auto opacity-100"
+            ? "max-md:pointer-events-auto max-md:bg-black/50 max-md:opacity-100 md:pointer-events-none md:bg-transparent md:opacity-0"
             : "pointer-events-none opacity-0"
         )}
         onClick={() => onOpenChange(false)}
@@ -84,20 +215,40 @@ export function ProjectSidebar({
             </TabsList>
           </div>
 
-          <TabsContent value="mine" className="mt-0 flex min-h-0 flex-1 flex-col">
-            <EmptyTabState icon={FolderOpen} message="No projects yet." />
+          <TabsContent
+            value="mine"
+            className="mt-0 flex min-h-0 flex-1 flex-col"
+          >
+            <ProjectList
+              projects={myProjects}
+              emptyIcon={FolderOpen}
+              emptyMessage="No projects yet."
+              onRenameProject={onRenameProject}
+              onDeleteProject={onDeleteProject}
+            />
           </TabsContent>
 
-          <TabsContent value="shared" className="mt-0 flex min-h-0 flex-1 flex-col">
-            <EmptyTabState
-              icon={Share2}
-              message="Nothing shared with you yet."
+          <TabsContent
+            value="shared"
+            className="mt-0 flex min-h-0 flex-1 flex-col"
+          >
+            <ProjectList
+              projects={sharedProjects}
+              emptyIcon={Share2}
+              emptyMessage="Nothing shared with you yet."
+              onRenameProject={onRenameProject}
+              onDeleteProject={onDeleteProject}
             />
           </TabsContent>
         </Tabs>
 
         <div className="shrink-0 border-t border-border p-3">
-          <Button type="button" variant="default" className="w-full gap-2">
+          <Button
+            type="button"
+            variant="default"
+            className="w-full gap-2"
+            onClick={onNewProject}
+          >
             <Plus className="h-4 w-4" aria-hidden />
             New Project
           </Button>
