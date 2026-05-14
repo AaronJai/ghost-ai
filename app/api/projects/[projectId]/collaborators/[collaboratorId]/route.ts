@@ -31,17 +31,12 @@ export async function DELETE(_request: Request, context: RouteContext) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
 
-  const row = await prismaDb.projectCollaborator.findFirst({
+  const result = await prismaDb.projectCollaborator.deleteMany({
     where: { id: collaboratorId, projectId },
-    select: { id: true },
   });
-  if (!row) {
+  if (result.count === 0) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
-
-  await prismaDb.projectCollaborator.delete({
-    where: { id: collaboratorId },
-  });
 
   return new NextResponse(null, { status: 204 });
 }

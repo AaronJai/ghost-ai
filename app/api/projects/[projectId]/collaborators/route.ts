@@ -31,19 +31,11 @@ export async function GET(_request: Request, context: RouteContext) {
 
   const { projectId } = await context.params;
 
-  const projectExists = await prismaDb.project.findUnique({
-    where: { id: projectId },
-    select: { id: true },
-  });
-  if (!projectExists) {
-    return NextResponse.json({ error: "Not found" }, { status: 404 });
-  }
-
   const user = await currentUser();
   const identity = buildClerkEditorIdentity(userId, user);
   const access = await getEditorProjectAccess(projectId, identity);
   if (!access.ok) {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
 
   const rows = await prismaDb.projectCollaborator.findMany({
@@ -82,22 +74,14 @@ export async function POST(request: Request, context: RouteContext) {
 
   const { projectId } = await context.params;
 
-  const projectExists = await prismaDb.project.findUnique({
-    where: { id: projectId },
-    select: { id: true },
-  });
-  if (!projectExists) {
-    return NextResponse.json({ error: "Not found" }, { status: 404 });
-  }
-
   const user = await currentUser();
   const identity = buildClerkEditorIdentity(userId, user);
   const access = await getEditorProjectAccess(projectId, identity);
   if (!access.ok) {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
   if (access.role !== "owner") {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
 
   let body: PostBody = {};

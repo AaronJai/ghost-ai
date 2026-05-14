@@ -6,5 +6,6 @@ export function normalizeCollaboratorEmail(email: string): string {
 export function isValidCollaboratorEmailInput(email: string): boolean {
   const e = email.trim();
   if (e.length < 3 || e.length > 320) return false;
-  return e.includes("@");
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return emailRegex.test(e);
 }

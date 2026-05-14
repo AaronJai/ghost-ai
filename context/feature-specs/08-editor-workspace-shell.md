@@ -1,8 +1,8 @@
-Build the `/editor/[roomId]` workspace shell with server-side checks. No canvas logic yet.
+Build the `/editor/[projectId]` workspace shell with server-side checks. No canvas logic yet.
 
 ## Access
 
-`/editor/[roomId]` must be a server component.
+`/editor/[projectId]` must be a server component.
 
 Before rendering:
 - Unauthenticated users redirect to `/sign-in`.
@@ -39,7 +39,7 @@ Do not add real canvas logic, Liveblocks, AI chat, or sharing behavior yet.
 
 ## Check when done
 
-- `/editor/[roomId]` builds successfully
+- `/editor/[projectId]` builds successfully
 - Access helper exists outside the page component
 - `AccessDenied` is used for missing or unauthorized projects
 - Workspace layout renders with current project context

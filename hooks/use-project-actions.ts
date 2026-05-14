@@ -31,7 +31,7 @@ function roomIdWithFixedSuffix(
   const root =
     (baseSlug || "project").slice(0, 100).replace(/-+$/g, "") || "project";
   let candidate = `${root}-${suffix}`;
-  let n = 1;
+  let n = 0;
   while (ids.has(candidate)) {
     n += 1;
     candidate = `${root}-${suffix}-${n}`;

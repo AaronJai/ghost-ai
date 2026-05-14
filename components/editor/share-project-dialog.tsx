@@ -93,6 +93,12 @@ export function ShareProjectDialog({
       const ok = data as ShareListResponse;
       setRows(ok.collaborators);
       setServerCanManage(ok.canManage);
+    } catch (err) {
+      setLoadError(
+        err instanceof Error ? err.message : "Could not load collaborators",
+      );
+      setRows([]);
+      setServerCanManage(false);
     } finally {
       setLoading(false);
     }
@@ -139,6 +145,10 @@ export function ShareProjectDialog({
       setInviteEmail("");
       await load();
       router.refresh();
+    } catch (err) {
+      setInviteError(
+        err instanceof Error ? err.message : "Invite failed",
+      );
     } finally {
       setInviteBusy(false);
     }
@@ -159,6 +169,8 @@ export function ShareProjectDialog({
         }
         setRows((prev) => prev.filter((r) => r.id !== collaboratorId));
         router.refresh();
+      } catch {
+        await load();
       } finally {
         setRemovingId(null);
       }

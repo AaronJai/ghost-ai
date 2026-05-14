@@ -100,7 +100,9 @@ export function EditorNavbar({
               aria-expanded={isAiPanelOpen}
               aria-controls="editor-ai-sidebar"
               aria-label={isAiPanelOpen ? "Hide AI sidebar" : "Show AI sidebar"}
-              onClick={onAiPanelToggle}
+              disabled={!onAiPanelToggle}
+              aria-disabled={!onAiPanelToggle}
+              onClick={onAiPanelToggle ? onAiPanelToggle : undefined}
             >
               <AiPanelIcon className="h-5 w-5" aria-hidden />
             </Button>
