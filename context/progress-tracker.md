@@ -8,7 +8,7 @@ Update this file whenever the current phase, active feature, or implementation s
 
 ## Current Goal
 
-- Wire Prisma / project persistence, Liveblocks canvas, or the next feature unit from `context/feature-specs/`.
+- Wire project UI to Prisma persistence, Liveblocks canvas, or the next feature unit from `context/feature-specs/`.
 
 ## Completed
 
@@ -16,6 +16,7 @@ Update this file whenever the current phase, active feature, or implementation s
 - `context/feature-specs/02-editor.md` — `components/editor/editor-navbar.tsx` (fixed-height bar, sidebar toggle with `PanelLeftOpen` / `PanelLeftClose`, empty center and right); `components/editor/project-sidebar.tsx` (overlay sidebar, slide-in, `Projects` header + close, `Tabs` for My Projects / Shared with empty states, full-width `New Project`); `components/editor/editor-dialog-pattern.tsx` (`EditorDialogContent`, `EditorDialogFooter`, re-exports for title/description/actions); `components/editor/editor-workspace.tsx` (shell composed into the editor route; see `03-auth` for `/editor`).
 - `context/feature-specs/03-auth.md` — `@clerk/ui` added; root `ClerkProvider` with `dark` theme from `@clerk/ui/themes` and appearance variables mapped to app CSS custom properties (`lib/clerk-appearance.ts`); `proxy.ts` at project root with `clerkMiddleware`, public routes derived from `NEXT_PUBLIC_CLERK_SIGN_IN_URL` / `NEXT_PUBLIC_CLERK_SIGN_UP_URL` (path fallbacks `/sign-in`, `/sign-up`), default protection elsewhere; `/` redirects signed-in users to `/editor` and signed-out to sign-in; `app/sign-in/[[...sign-in]]` and `app/sign-up/[[...sign-up]]` with minimal two-panel `AuthGateLayout` (marketing panel `lg+` only); editor shell at `app/editor/page.tsx`; `UserButton` in navbar right using shared appearance.
 - `context/feature-specs/04-project-dialogs.md` — `hooks/use-project-dialogs.ts` (dialog / form / mock loading state; mock my + shared lists); `lib/mock-projects.ts`, `lib/project-slug.ts`; `components/editor/editor-home.tsx` (center copy + `New Project` with `Plus`); `components/editor/project-dialogs.tsx` (Create with live slug preview, Rename with prefilled name / Enter submit / autofocus, Delete destructive confirm); `ProjectSidebar` wired to dialogs, per-row actions (rename/delete) only for `membership === "owner"`, `max-md` backdrop scrim + outside tap to close, desktop overlay non-blocking; `editor-workspace.tsx` composes hook, home, dialogs, and sidebar.
+- `context/feature-specs/05-prisma.md` — `prisma/models/project.prisma` (`Project`, `ProjectCollaborator`, `ProjectStatus`, indexes and unique as specified); `lib/prisma.ts` (singleton on `globalThis` in non-production; `prisma+postgres://` → Accelerate + `@prisma/extension-accelerate`, else `@prisma/adapter-pg`); first migration `20260514070455_init_project_models`; client output `app/generated/prisma` (gitignored).
 
 ## In Progress
 
@@ -23,7 +24,7 @@ Update this file whenever the current phase, active feature, or implementation s
 
 ## Next Up
 
-- Prisma / projects persistence, Liveblocks canvas, or whichever unit is next in `context/feature-specs/`.
+- Replace mock project lists with Prisma-backed APIs, Liveblocks canvas, or whichever unit is next in `context/feature-specs/`.
 
 ## Open Questions
 
@@ -31,7 +32,7 @@ Update this file whenever the current phase, active feature, or implementation s
 
 ## Architecture Decisions
 
-- Add decisions that affect the system design or data model.
+- Prisma Client wiring (`lib/prisma.ts`): if `DATABASE_URL` starts with `prisma+postgres://`, use Prisma Accelerate (`accelerateUrl` + `@prisma/extension-accelerate`); otherwise use direct PostgreSQL via `@prisma/adapter-pg`. Singleton is cached on `globalThis` outside production for Next.js dev hot reload.
 
 ## Session Notes
 
