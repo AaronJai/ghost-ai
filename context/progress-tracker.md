@@ -8,7 +8,7 @@ Update this file whenever the current phase, active feature, or implementation s
 
 ## Current Goal
 
-- Wire project UI to Prisma-backed project APIs, Liveblocks canvas, or the next feature unit from `context/feature-specs/`.
+- Liveblocks canvas on `/editor/[projectId]`, or the next feature unit from `context/feature-specs/`.
 
 ## Completed
 
@@ -19,6 +19,8 @@ Update this file whenever the current phase, active feature, or implementation s
 - `context/feature-specs/05-prisma.md` — `prisma/models/project.prisma` (`Project`, `ProjectCollaborator`, `ProjectStatus`, indexes and unique as specified); `lib/prisma.ts` (singleton on `globalThis` in non-production; `prisma+postgres://` → Accelerate + `@prisma/extension-accelerate`, else `@prisma/adapter-pg`); first migration `20260514070455_init_project_models`; client output `app/generated/prisma` (gitignored).
 - `context/feature-specs/06-project-apis.md` — `GET/POST /api/projects`, `PATCH/DELETE /api/projects/[projectId]` with Clerk `ownerId`, default name `Untitled Project`, owner-only rename/delete (`403`), unauthenticated `401` (`lib/api-auth.ts`); `canvas/{id}.json` set in a transaction after create; `proxy.ts` skips `auth.protect()` for `/api` so handlers return JSON errors instead of redirects.
 - `context/feature-specs/07-wire-editor-home.md` — `lib/editor-projects.ts` (`getEditorProjectsForUser`: owned + shared by collaborator email); `app/editor/page.tsx` and `app/editor/[projectId]/page.tsx` as server components passing lists into `EditorWorkspace`; `hooks/use-project-actions.ts` (dialogs, `POST`/`PATCH`/`DELETE` via fetch, slug-based room `id` aligned with DB, `router.refresh` / redirect after mutations); `POST /api/projects` accepts optional `id` (slug validation + `409` on collision); sidebar/dialogs use `EditorSidebarProject`; removed `use-project-dialogs` / `mock-projects`.
+- `context/feature-specs/08-editor-workspace-shell.md` — `lib/project-access.ts` (`buildClerkEditorIdentity`, `getPrimaryEmailFromClerkUser`, `getEditorProjectAccess` via Prisma owner or collaborator); `components/editor/access-denied.tsx` (lock, copy, link to `/editor`); `app/editor/[projectId]/page.tsx` server checks + `AccessDenied` for missing/unauthorized projects; `EditorNavbar` project title, Share + AI panel toggles; `EditorWorkspace` project layout: `bg-background` canvas placeholder, optional `activeProjectName`, right AI placeholder sidebar; editor home unchanged.
+- `context/feature-specs/09-share-dialog.md` — `GET/POST /api/projects/[projectId]/collaborators`, `DELETE /api/projects/[projectId]/collaborators/[collaboratorId]` (owner-only invite/remove; members can list); `lib/clerk-collaborator-profiles.ts` + `lib/collaborator-email.ts`; `getEditorProjectAccess` extended with `role`; `ShareProjectDialog` (invite, list, remove, copy link + “Copied!”); navbar Share opens dialog; collaborators read-only without manage actions.
 
 ## In Progress
 
