@@ -1,21 +1,22 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import { FolderOpen, MoreHorizontal, Plus, Share2, X } from "lucide-react";
+import { FolderOpen, Pencil, Plus, Share2, Trash2, X } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import type { MockProject } from "@/lib/mock-projects";
+import type { EditorSidebarProject } from "@/lib/editor-projects";
 import { cn } from "@/lib/utils";
 
 export interface ProjectSidebarProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
-  myProjects: MockProject[];
-  sharedProjects: MockProject[];
+  myProjects: EditorSidebarProject[];
+  sharedProjects: EditorSidebarProject[];
+  selectedProjectId: string | null;
+  onSelectProject: (projectId: string) => void;
   onNewProject: () => void;
-  onRenameProject: (project: MockProject) => void;
-  onDeleteProject: (project: MockProject) => void;
+  onRenameProject: (project: EditorSidebarProject) => void;
+  onDeleteProject: (project: EditorSidebarProject) => void;
   className?: string;
 }
 
@@ -40,85 +41,77 @@ function EmptyTabState({
 
 function ProjectRow({
   project,
+  selected,
   showActions,
+  onSelect,
   onRename,
   onDelete,
 }: {
-  project: MockProject;
+  project: EditorSidebarProject;
+  selected: boolean;
   showActions: boolean;
+  onSelect: () => void;
   onRename: () => void;
   onDelete: () => void;
 }) {
-  const [menuOpen, setMenuOpen] = useState(false);
-  const rowRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (!menuOpen) return;
-    function handlePointerDown(event: PointerEvent) {
-      const node = rowRef.current;
-      if (node && !node.contains(event.target as Node)) {
-        setMenuOpen(false);
-      }
-    }
-    document.addEventListener("pointerdown", handlePointerDown);
-    return () => document.removeEventListener("pointerdown", handlePointerDown);
-  }, [menuOpen]);
-
   return (
     <div
-      ref={rowRef}
-      className="flex items-stretch gap-1 border-b border-border py-2 pr-1 pl-3"
+      role="button"
+      tabIndex={0}
+      aria-label={`Project ${project.name}`}
+      aria-pressed={selected}
+      onClick={onSelect}
+      onKeyDown={(e) => {
+        if (e.target !== e.currentTarget) return;
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          onSelect();
+        }
+      }}
+      className={cn(
+        "group flex cursor-pointer items-center gap-2 rounded-2xl px-3 py-2.5 text-left outline-none transition-colors select-none",
+        "hover:bg-muted/50 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-card",
+        selected && "bg-muted/40 hover:bg-muted/55",
+      )}
     >
-      <div className="min-w-0 flex-1 py-0.5">
+      <div className="min-w-0 flex-1">
         <p className="truncate text-sm font-medium text-foreground">
           {project.name}
         </p>
-        <p className="truncate font-mono text-xs text-muted-foreground">
-          {project.slug}
-        </p>
       </div>
       {showActions ? (
-        <div className="relative flex shrink-0 items-start">
+        <div
+          className={cn(
+            "flex shrink-0 items-center gap-0.5 transition-opacity",
+            "opacity-100 sm:opacity-0 sm:group-hover:opacity-100 sm:group-focus-within:opacity-100",
+          )}
+        >
           <Button
             type="button"
             variant="ghost"
             size="icon-sm"
-            aria-expanded={menuOpen}
-            aria-haspopup="menu"
-            aria-label={`Actions for ${project.name}`}
-            onClick={() => setMenuOpen((open) => !open)}
+            className="text-foreground"
+            aria-label={`Rename ${project.name}`}
+            onClick={(e) => {
+              e.stopPropagation();
+              onRename();
+            }}
           >
-            <MoreHorizontal className="h-5 w-5" aria-hidden />
+            <Pencil className="h-4 w-4" aria-hidden />
           </Button>
-          {menuOpen ? (
-            <div
-              role="menu"
-              className="absolute top-full right-0 z-50 mt-1 min-w-[10rem] rounded-xl border border-border bg-popover py-1 shadow-lg ring-1 ring-border/60"
-            >
-              <button
-                type="button"
-                role="menuitem"
-                className="flex w-full items-center px-3 py-2 text-left text-sm text-foreground hover:bg-muted"
-                onClick={() => {
-                  setMenuOpen(false);
-                  onRename();
-                }}
-              >
-                Rename
-              </button>
-              <button
-                type="button"
-                role="menuitem"
-                className="flex w-full items-center px-3 py-2 text-left text-sm text-destructive hover:bg-muted"
-                onClick={() => {
-                  setMenuOpen(false);
-                  onDelete();
-                }}
-              >
-                Delete
-              </button>
-            </div>
-          ) : null}
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon-sm"
+            className="text-destructive hover:text-destructive"
+            aria-label={`Delete ${project.name}`}
+            onClick={(e) => {
+              e.stopPropagation();
+              onDelete();
+            }}
+          >
+            <Trash2 className="h-4 w-4" aria-hidden />
+          </Button>
         </div>
       ) : null}
     </div>
@@ -129,26 +122,32 @@ function ProjectList({
   projects,
   emptyMessage,
   emptyIcon,
+  selectedProjectId,
+  onSelectProject,
   onRenameProject,
   onDeleteProject,
 }: {
-  projects: MockProject[];
+  projects: EditorSidebarProject[];
   emptyMessage: string;
   emptyIcon: typeof FolderOpen;
-  onRenameProject: (project: MockProject) => void;
-  onDeleteProject: (project: MockProject) => void;
+  selectedProjectId: string | null;
+  onSelectProject: (projectId: string) => void;
+  onRenameProject: (project: EditorSidebarProject) => void;
+  onDeleteProject: (project: EditorSidebarProject) => void;
 }) {
   if (projects.length === 0) {
     return <EmptyTabState icon={emptyIcon} message={emptyMessage} />;
   }
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col overflow-y-auto">
+    <div className="flex min-h-0 flex-1 flex-col gap-1.5 overflow-y-auto px-3 py-2">
       {projects.map((project) => (
         <ProjectRow
           key={project.id}
           project={project}
+          selected={selectedProjectId === project.id}
           showActions={project.membership === "owner"}
+          onSelect={() => onSelectProject(project.id)}
           onRename={() => onRenameProject(project)}
           onDelete={() => onDeleteProject(project)}
         />
@@ -162,6 +161,8 @@ export function ProjectSidebar({
   onOpenChange,
   myProjects,
   sharedProjects,
+  selectedProjectId,
+  onSelectProject,
   onNewProject,
   onRenameProject,
   onDeleteProject,
@@ -223,6 +224,8 @@ export function ProjectSidebar({
               projects={myProjects}
               emptyIcon={FolderOpen}
               emptyMessage="No projects yet."
+              selectedProjectId={selectedProjectId}
+              onSelectProject={onSelectProject}
               onRenameProject={onRenameProject}
               onDeleteProject={onDeleteProject}
             />
@@ -236,6 +239,8 @@ export function ProjectSidebar({
               projects={sharedProjects}
               emptyIcon={Share2}
               emptyMessage="Nothing shared with you yet."
+              selectedProjectId={selectedProjectId}
+              onSelectProject={onSelectProject}
               onRenameProject={onRenameProject}
               onDeleteProject={onDeleteProject}
             />

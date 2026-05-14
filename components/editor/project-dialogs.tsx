@@ -12,15 +12,19 @@ import {
 } from "@/components/editor/editor-dialog-pattern";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import type { ProjectDialogState } from "@/hooks/use-project-dialogs";
+import type { ProjectDialogState } from "@/hooks/use-project-actions";
+import { slugifyProjectName } from "@/lib/project-slug";
 
 export interface ProjectDialogsProps {
   dialog: ProjectDialogState;
   createName: string;
   onCreateNameChange: (value: string) => void;
   slugPreview: string;
+  createError: string | null;
   renameName: string;
   onRenameNameChange: (value: string) => void;
+  renameError: string | null;
+  deleteError: string | null;
   isLoading: boolean;
   onOpenChange: (open: boolean) => void;
   onSubmitCreate: () => void;
@@ -33,8 +37,11 @@ export function ProjectDialogs({
   createName,
   onCreateNameChange,
   slugPreview,
+  createError,
   renameName,
   onRenameNameChange,
+  renameError,
+  deleteError,
   isLoading,
   onOpenChange,
   onSubmitCreate,
@@ -54,14 +61,10 @@ export function ProjectDialogs({
   }, [dialog.kind, dialog.project?.id]);
 
   const trimmedCreateName = createName.trim();
-  const slugEmpty =
-    trimmedCreateName.length > 0 && slugPreview.length === 0;
+  const slugBase = slugifyProjectName(trimmedCreateName);
+  const slugEmpty = trimmedCreateName.length > 0 && slugBase.length === 0;
   const slugMono =
-    trimmedCreateName.length === 0
-      ? "your-project-slug"
-      : slugEmpty
-        ? "—"
-        : slugPreview;
+    trimmedCreateName.length === 0 ? "your-room-id" : slugPreview;
   const canSubmitCreate =
     trimmedCreateName.length > 0 && slugPreview.length > 0;
 
@@ -104,13 +107,18 @@ export function ProjectDialogs({
                 aria-invalid={slugEmpty}
               />
               <p className="text-xs text-muted-foreground">
-                Slug preview:{" "}
+                Room ID preview:{" "}
                 <span className="font-mono text-foreground">{slugMono}</span>
               </p>
               {slugEmpty ? (
                 <p className="text-xs text-destructive" role="alert">
                   Add at least one letter or number — symbols alone cannot form
                   a URL slug.
+                </p>
+              ) : null}
+              {createError ? (
+                <p className="text-xs text-destructive" role="alert">
+                  {createError}
                 </p>
               ) : null}
             </div>
@@ -170,6 +178,11 @@ export function ProjectDialogs({
                 disabled={isLoading}
                 autoFocus
               />
+              {renameError ? (
+                <p className="text-xs text-destructive" role="alert">
+                  {renameError}
+                </p>
+              ) : null}
             </div>
             <EditorDialogFooter className="mt-2 border-t">
               <Button
@@ -206,6 +219,11 @@ export function ProjectDialogs({
               from your list. This action cannot be undone.
             </DialogDescription>
           </DialogHeader>
+          {deleteError ? (
+            <p className="text-xs text-destructive" role="alert">
+              {deleteError}
+            </p>
+          ) : null}
           <EditorDialogFooter className="mt-2 border-t">
             <Button
               type="button"

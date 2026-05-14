@@ -2,6 +2,9 @@ import { PrismaPg } from "@prisma/adapter-pg";
 import { withAccelerate } from "@prisma/extension-accelerate";
 import { PrismaClient } from "@/app/generated/prisma/client";
 
+/** Base client instance type (avoids TS union incompatibilities from `$extends(withAccelerate())`). */
+export type AppPrismaClient = InstanceType<typeof PrismaClient>;
+
 function createPrismaClient() {
   const url = process.env.DATABASE_URL;
   if (!url) {
@@ -25,3 +28,6 @@ export const prisma = globalForPrisma.prisma ?? createPrismaClient();
 if (process.env.NODE_ENV !== "production") {
   globalForPrisma.prisma = prisma;
 }
+
+/** Use in route handlers when Turbopack cannot merge extended client call signatures. */
+export const prismaDb: AppPrismaClient = prisma as unknown as AppPrismaClient;
