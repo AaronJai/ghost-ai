@@ -5,12 +5,19 @@ import { EditorWorkspace } from "@/components/editor/editor-workspace";
 import { getSignInPath } from "@/lib/auth-routes";
 import { getEditorProjectsForUser } from "@/lib/editor-projects";
 
-export default async function EditorPage() {
+interface EditorProjectPageProps {
+  params: Promise<{ projectId: string }>;
+}
+
+export default async function EditorProjectPage({
+  params,
+}: EditorProjectPageProps) {
   const { userId } = await auth();
   if (!userId) {
     redirect(getSignInPath());
   }
 
+  const { projectId } = await params;
   const user = await currentUser();
   const email = user?.primaryEmailAddress?.emailAddress?.trim() ?? null;
   const { owned, shared } = await getEditorProjectsForUser({ userId, email });
@@ -19,7 +26,7 @@ export default async function EditorPage() {
     <EditorWorkspace
       myProjects={owned}
       sharedProjects={shared}
-      activeProjectId={null}
+      activeProjectId={projectId}
     />
   );
 }

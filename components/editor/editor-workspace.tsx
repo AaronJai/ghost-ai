@@ -2,21 +2,39 @@
 
 import { useState, useCallback } from "react";
 
+import type { EditorSidebarProject } from "@/lib/editor-projects";
 import { EditorHome } from "@/components/editor/editor-home";
 import { EditorNavbar } from "@/components/editor/editor-navbar";
 import { ProjectDialogs } from "@/components/editor/project-dialogs";
 import { ProjectSidebar } from "@/components/editor/project-sidebar";
-import { useProjectDialogs } from "@/hooks/use-project-dialogs";
+import { useProjectActions } from "@/hooks/use-project-actions";
 
-export function EditorWorkspace() {
+export interface EditorWorkspaceProps {
+  myProjects: EditorSidebarProject[];
+  sharedProjects: EditorSidebarProject[];
+  activeProjectId: string | null;
+}
+
+export function EditorWorkspace({
+  myProjects,
+  sharedProjects,
+  activeProjectId,
+}: EditorWorkspaceProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const dialogs = useProjectDialogs();
+  const dialogs = useProjectActions({
+    myProjects,
+    sharedProjects,
+    activeProjectId,
+  });
 
-  const handleDialogOpenChange = useCallback((open: boolean) => {
-    if (!open) {
-      dialogs.closeDialog();
-    }
-  }, [dialogs]);
+  const handleDialogOpenChange = useCallback(
+    (open: boolean) => {
+      if (!open) {
+        dialogs.closeDialog();
+      }
+    },
+    [dialogs],
+  );
 
   const handleNewProjectFromSidebar = useCallback(() => {
     setSidebarOpen(false);
@@ -33,8 +51,8 @@ export function EditorWorkspace() {
         <ProjectSidebar
           isOpen={sidebarOpen}
           onOpenChange={setSidebarOpen}
-          myProjects={dialogs.myProjects}
-          sharedProjects={dialogs.sharedProjects}
+          myProjects={myProjects}
+          sharedProjects={sharedProjects}
           onNewProject={handleNewProjectFromSidebar}
           onRenameProject={dialogs.openRename}
           onDeleteProject={dialogs.openDelete}

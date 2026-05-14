@@ -5,17 +5,17 @@ import { FolderOpen, MoreHorizontal, Plus, Share2, X } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import type { MockProject } from "@/lib/mock-projects";
+import type { EditorSidebarProject } from "@/lib/editor-projects";
 import { cn } from "@/lib/utils";
 
 export interface ProjectSidebarProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
-  myProjects: MockProject[];
-  sharedProjects: MockProject[];
+  myProjects: EditorSidebarProject[];
+  sharedProjects: EditorSidebarProject[];
   onNewProject: () => void;
-  onRenameProject: (project: MockProject) => void;
-  onDeleteProject: (project: MockProject) => void;
+  onRenameProject: (project: EditorSidebarProject) => void;
+  onDeleteProject: (project: EditorSidebarProject) => void;
   className?: string;
 }
 
@@ -44,7 +44,7 @@ function ProjectRow({
   onRename,
   onDelete,
 }: {
-  project: MockProject;
+  project: EditorSidebarProject;
   showActions: boolean;
   onRename: () => void;
   onDelete: () => void;
@@ -132,11 +132,11 @@ function ProjectList({
   onRenameProject,
   onDeleteProject,
 }: {
-  projects: MockProject[];
+  projects: EditorSidebarProject[];
   emptyMessage: string;
   emptyIcon: typeof FolderOpen;
-  onRenameProject: (project: MockProject) => void;
-  onDeleteProject: (project: MockProject) => void;
+  onRenameProject: (project: EditorSidebarProject) => void;
+  onDeleteProject: (project: EditorSidebarProject) => void;
 }) {
   if (projects.length === 0) {
     return <EmptyTabState icon={emptyIcon} message={emptyMessage} />;

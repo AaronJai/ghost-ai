@@ -12,7 +12,8 @@ import {
 } from "@/components/editor/editor-dialog-pattern";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import type { ProjectDialogState } from "@/hooks/use-project-dialogs";
+import type { ProjectDialogState } from "@/hooks/use-project-actions";
+import { slugifyProjectName } from "@/lib/project-slug";
 
 export interface ProjectDialogsProps {
   dialog: ProjectDialogState;
@@ -54,14 +55,10 @@ export function ProjectDialogs({
   }, [dialog.kind, dialog.project?.id]);
 
   const trimmedCreateName = createName.trim();
-  const slugEmpty =
-    trimmedCreateName.length > 0 && slugPreview.length === 0;
+  const slugBase = slugifyProjectName(trimmedCreateName);
+  const slugEmpty = trimmedCreateName.length > 0 && slugBase.length === 0;
   const slugMono =
-    trimmedCreateName.length === 0
-      ? "your-project-slug"
-      : slugEmpty
-        ? "—"
-        : slugPreview;
+    trimmedCreateName.length === 0 ? "" : slugPreview;
   const canSubmitCreate =
     trimmedCreateName.length > 0 && slugPreview.length > 0;
 
@@ -104,7 +101,7 @@ export function ProjectDialogs({
                 aria-invalid={slugEmpty}
               />
               <p className="text-xs text-muted-foreground">
-                Slug preview:{" "}
+                {" "}
                 <span className="font-mono text-foreground">{slugMono}</span>
               </p>
               {slugEmpty ? (

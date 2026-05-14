@@ -5,9 +5,17 @@ import { prismaDb } from "@/lib/prisma";
 
 const DEFAULT_PROJECT_NAME = "Untitled Project";
 
+/** Optional client-generated id; must stay aligned with Liveblocks room id. */
+const PROJECT_ID_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+
+function isValidOptionalProjectId(value: string): boolean {
+  return value.length >= 3 && value.length <= 128 && PROJECT_ID_PATTERN.test(value);
+}
+
 interface CreateProjectBody {
   name?: unknown;
   description?: unknown;
+  id?: unknown;
 }
 
 export async function GET() {
@@ -62,9 +70,32 @@ export async function POST(request: Request) {
       ? rawDescription.trim()
       : undefined;
 
+  const rawId = body.id;
+  let explicitId: string | undefined;
+  if (rawId !== undefined) {
+    if (typeof rawId !== "string" || !isValidOptionalProjectId(rawId.trim())) {
+      return NextResponse.json(
+        {
+          error:
+            "id must be a lowercase slug of letters, numbers, and hyphens (3–128 chars)",
+        },
+        { status: 400 },
+      );
+    }
+    explicitId = rawId.trim();
+    const taken = await prismaDb.project.findUnique({
+      where: { id: explicitId },
+      select: { id: true },
+    });
+    if (taken) {
+      return NextResponse.json({ error: "id already in use" }, { status: 409 });
+    }
+  }
+
   const project = await prismaDb.$transaction(async (tx) => {
     const created = await tx.project.create({
       data: {
+        ...(explicitId ? { id: explicitId } : {}),
         ownerId: userId,
         name,
         description,
