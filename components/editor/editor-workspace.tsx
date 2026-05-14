@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useRouter } from "next/navigation";
+import { useCallback, useState } from "react";
 
 import type { EditorSidebarProject } from "@/lib/editor-projects";
 import { EditorHome } from "@/components/editor/editor-home";
@@ -20,7 +21,26 @@ export function EditorWorkspace({
   sharedProjects,
   activeProjectId,
 }: EditorWorkspaceProps) {
+  const router = useRouter();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [localSelectedProjectId, setLocalSelectedProjectId] = useState<
+    string | null
+  >(null);
+
+  const selectedProjectId =
+    activeProjectId ?? localSelectedProjectId;
+
+  const handleSelectProject = useCallback(
+    (id: string) => {
+      if (activeProjectId === null) {
+        setLocalSelectedProjectId(id);
+      } else {
+        router.push(`/editor/${id}`);
+      }
+    },
+    [activeProjectId, router],
+  );
+
   const dialogs = useProjectActions({
     myProjects,
     sharedProjects,
@@ -53,6 +73,8 @@ export function EditorWorkspace({
           onOpenChange={setSidebarOpen}
           myProjects={myProjects}
           sharedProjects={sharedProjects}
+          selectedProjectId={selectedProjectId}
+          onSelectProject={handleSelectProject}
           onNewProject={handleNewProjectFromSidebar}
           onRenameProject={dialogs.openRename}
           onDeleteProject={dialogs.openDelete}
