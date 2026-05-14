@@ -3,8 +3,16 @@ import { NextResponse } from "next/server";
 
 import { getSignInPath, getSignUpPath } from "@/lib/auth-routes";
 
-const signInPath = getSignInPath();
-const signUpPath = getSignUpPath();
+const normalizeAuthPath = (value: string, fallback: string) => {
+  try {
+    return new URL(value, "http://localhost").pathname || fallback;
+  } catch {
+    return fallback;
+  }
+};
+
+const signInPath = normalizeAuthPath(getSignInPath(), "/sign-in");
+const signUpPath = normalizeAuthPath(getSignUpPath(), "/sign-up");
 
 const isPublicRoute = createRouteMatcher([
   `${signInPath}(.*)`,
