@@ -1,6 +1,7 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
+@import "@clerk/ui/themes/shadcn.css";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -39,6 +40,8 @@
     --color-card: var(--card);
     --color-foreground: var(--foreground);
     --color-background: var(--background);
+    --color-auth-split-left: var(--auth-split-left-bg);
+    --color-auth-split-right: var(--auth-split-right-bg);
     --radius-sm: calc(var(--radius) * 0.6);
     --radius-md: calc(var(--radius) * 0.8);
     --radius-lg: var(--radius);
@@ -83,6 +86,9 @@
     --sidebar-accent-foreground: #f0f0f4;
     --sidebar-border: #2a2a30;
     --sidebar-ring: #00c8d4;
+    /* Auth marketing vs form column (see components/auth/auth-gate-layout.tsx) */
+    --auth-split-left-bg: #0c1018;
+    --auth-split-right-bg: #020203;
 }
 
 @layer base {
