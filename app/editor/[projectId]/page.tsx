@@ -1,9 +1,14 @@
 import { auth, currentUser } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 
+import { AccessDenied } from "@/components/editor/access-denied";
 import { EditorWorkspace } from "@/components/editor/editor-workspace";
 import { getSignInPath } from "@/lib/auth-routes";
 import { getEditorProjectsForUser } from "@/lib/editor-projects";
+import {
+  buildClerkEditorIdentity,
+  getEditorProjectAccess,
+} from "@/lib/project-access";
 
 interface EditorProjectPageProps {
   params: Promise<{ projectId: string }>;
@@ -19,6 +24,13 @@ export default async function EditorProjectPage({
 
   const { projectId } = await params;
   const user = await currentUser();
+  const identity = buildClerkEditorIdentity(userId, user);
+
+  const access = await getEditorProjectAccess(projectId, identity);
+  if (!access.ok) {
+    return <AccessDenied />;
+  }
+
   const email = user?.primaryEmailAddress?.emailAddress?.trim() ?? null;
   const { owned, shared } = await getEditorProjectsForUser({ userId, email });
 
@@ -26,7 +38,9 @@ export default async function EditorProjectPage({
     <EditorWorkspace
       myProjects={owned}
       sharedProjects={shared}
-      activeProjectId={projectId}
+      activeProjectId={access.project.id}
+      activeProjectName={access.project.name}
+      activeProjectRole={access.role}
     />
   );
 }

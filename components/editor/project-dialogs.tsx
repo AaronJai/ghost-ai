@@ -106,9 +106,8 @@ export function ProjectDialogs({
                 disabled={isLoading}
                 aria-invalid={slugEmpty}
               />
-              <p className="text-xs text-muted-foreground">
-                Room ID preview:{" "}
-                <span className="font-mono text-foreground">{slugMono}</span>
+              <p className="font-mono text-xs text-muted-foreground">
+                {slugMono}
               </p>
               {slugEmpty ? (
                 <p className="text-xs text-destructive" role="alert">
