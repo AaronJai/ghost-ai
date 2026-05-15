@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useCallback, useState } from "react";
 
 import type { EditorSidebarProject } from "@/lib/editor-projects";
+import { CanvasWrapper } from "@/components/editor/canvas-wrapper";
 import { EditorHome } from "@/components/editor/editor-home";
 import { EditorNavbar } from "@/components/editor/editor-navbar";
 import { ProjectDialogs } from "@/components/editor/project-dialogs";
@@ -97,12 +98,10 @@ export function EditorWorkspace({
           <div className="flex min-h-0 flex-1">
             <div className="flex min-h-0 min-w-0 flex-1 flex-col">
               <div
-                className="flex min-h-0 flex-1 flex-col items-center justify-center bg-background px-6 py-10"
+                className="relative flex min-h-0 flex-1 bg-background"
                 aria-label="Canvas"
               >
-                <p className="max-w-md text-center text-sm text-muted-foreground">
-                  Canvas will appear here. Live editing and nodes are not wired yet.
-                </p>
+                <CanvasWrapper roomId={activeProjectId} />
               </div>
             </div>
             <aside
